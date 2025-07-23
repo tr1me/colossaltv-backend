@@ -4,92 +4,129 @@
   <meta charset="UTF-8">
   <title>Carta</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
       height: 100vh;
-      background-color: #000;
-      background-image: url('your-image.jpeg');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      overflow: hidden;
+      background-color: #111;
       font-family: sans-serif;
+      overflow: hidden;
     }
 
-    #play-icon {
+    /* Envelope container */
+    #envelope {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 240px;
+      height: 160px;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 2;
+      transition: transform 1s ease, opacity 0.8s ease;
+    }
+
+    /* Seal */
+    #seal {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.4);
-      border: none;
+      font-size: 2.5em;
+      color: red;
+      background: white;
       border-radius: 50%;
-      width: 80px;
-      height: 80px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: opacity 0.4s ease-in-out;
-      opacity: 0.9;
+      padding: 6px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
 
-    #play-icon::before {
-      content: '▶';
-      font-size: 2em;
-      color: white;
+    /* Letter reveal */
+    #letter {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background-color: #000;
+      background-image: url('your-image.jpeg');
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      z-index: 1;
     }
 
-   #lyric {
-  position: absolute;
-  bottom: 20px;
-  right: 30px;
-  max-width: 80%;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 12px 18px;
-  border-radius: 10px;
-  color: #FF0000;
-  font-size: 3.0em;            /* Bigger text */
-  font-family: 'Cursive', Brush Script MT;  /* Cursive style */
-  text-shadow: 2px 2px 6px #000;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
+    #lyric {
+      position: absolute;
+      bottom: 20px;
+      right: 30px;
+      max-width: 80%;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 14px 20px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 3.0em;
+      font-family: 'Brush Script MT', cursive;
+      text-shadow: 2px 2px 6px #000;
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+    }
   </style>
 </head>
 <body>
-  <audio id="bg-audio">
-    <source src="te-presumo-v2.MP3" type="audio/mpeg">
-    Tu navegador no soporta el elemento de audio.
-  </audio>
 
-  <button id="play-icon"></button>
-  <div id="lyric">Te presumo porque un verdadero amor nunca se esconde</div>
+  <div id="envelope">
+    <div id="seal">❤️</div>
+  </div>
+
+  <div id="letter">
+    <audio id="bg-audio">
+      <source src="te-presumo-v2.MP3" type="audio/mpeg">
+      Tu navegador no soporta el elemento de audio.
+    </audio>
+    <div id="lyric">Te presumo porque un verdadero amor nunca se esconde</div>
+  </div>
 
   <script>
+    const envelope = document.getElementById('envelope');
+    const letter = document.getElementById('letter');
     const audio = document.getElementById('bg-audio');
     const lyric = document.getElementById('lyric');
-    const playIcon = document.getElementById('play-icon');
 
-    playIcon.addEventListener('click', () => {
-      playIcon.style.display = 'none';
-      audio.currentTime = 50;
-      audio.volume = 0;
-      audio.play().then(() => {
-        const fadeInDuration = 2000;
-        const fadeInInterval = 100;
-        const fadeInStep = 1 / (fadeInDuration / fadeInInterval);
-        const fadeIn = setInterval(() => {
-          if (audio.volume < 1.0) {
-            audio.volume = Math.min(audio.volume + fadeInStep, 1.0);
-          } else {
-            clearInterval(fadeIn);
-          }
-        }, fadeInInterval);
-      }).catch(err => {
-        console.warn("Autoplay may be blocked:", err);
-      });
+    envelope.addEventListener('click', () => {
+      envelope.style.transform = 'translate(-50%, -50%) scale(0.1)';
+      envelope.style.opacity = '0';
+      setTimeout(() => {
+        envelope.style.display = 'none';
+        letter.style.opacity = '1';
+
+        // Start music playback from 50s
+        audio.currentTime = 50;
+        audio.volume = 0;
+        audio.play().then(() => {
+          const fadeInDuration = 2000;
+          const fadeInInterval = 100;
+          const fadeInStep = 1 / (fadeInDuration / fadeInInterval);
+          const fadeIn = setInterval(() => {
+            if (audio.volume < 1.0) {
+              audio.volume = Math.min(audio.volume + fadeInStep, 1.0);
+            } else {
+              clearInterval(fadeIn);
+            }
+          }, fadeInInterval);
+        }).catch(err => {
+          console.warn("Playback blocked:", err);
+        });
+      }, 1000);
     });
 
     audio.addEventListener('timeupdate', () => {
@@ -98,13 +135,12 @@
       // Show lyric between 50s and 91s
       lyric.style.opacity = (t >= 50 && t <= 91) ? 1 : 0;
 
-      // Fade out between 88s and 91s (last 3 seconds)
+      // Fade out between 88s and 91s
       if (t >= 88 && t <= 91) {
-        const remaining = 91 - t;
-        audio.volume = remaining / 3;
+        audio.volume = (91 - t) / 3;
       }
 
-      // Stop playback at 91s
+      // Stop at 91s
       if (t >= 91) {
         audio.pause();
         audio.currentTime = 0;
