@@ -17,7 +17,7 @@
       overflow: hidden;
     }
 
-    /* Envelope container */
+    /* Envelope */
     #envelope {
       position: absolute;
       top: 50%;
@@ -32,9 +32,9 @@
       cursor: pointer;
       z-index: 2;
       transition: transform 1s ease, opacity 0.8s ease;
+      -webkit-transition: transform 1s ease, opacity 0.8s ease;
     }
 
-    /* Seal */
     #seal {
       position: absolute;
       top: 50%;
@@ -48,7 +48,7 @@
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
 
-    /* Letter reveal */
+    /* Letter background */
     #letter {
       position: absolute;
       top: 0;
@@ -62,6 +62,7 @@
       background-repeat: no-repeat;
       opacity: 0;
       transition: opacity 1s ease-in-out;
+      -webkit-transition: opacity 1s ease-in-out;
       z-index: 1;
     }
 
@@ -71,25 +72,28 @@
       right: 30px;
       max-width: 80%;
       background: rgba(0, 0, 0, 0.6);
-      padding: 14px 20px;
+      padding: 16px 22px;
       border-radius: 12px;
       color: #cf6ba9;
-      font-size: 3.0em;
+      font-size: 2em;
       font-family: 'Brush Script MT', cursive;
       text-shadow: 2px 2px 6px #000;
       opacity: 0;
       transition: opacity 0.6s ease-in-out;
+      -webkit-transition: opacity 0.6s ease-in-out;
     }
   </style>
 </head>
 <body>
 
+  <!-- Envelope with heart seal -->
   <div id="envelope">
     <div id="seal">❤️</div>
   </div>
 
+  <!-- Letter reveal with image, audio & lyrics -->
   <div id="letter">
-    <audio id="bg-audio">
+    <audio id="bg-audio" preload="auto">
       <source src="te-presumo-v2.MP3" type="audio/mpeg">
       Tu navegador no soporta el elemento de audio.
     </audio>
@@ -109,22 +113,19 @@
         envelope.style.display = 'none';
         letter.style.opacity = '1';
 
-        // Start music playback from 50s
+        // Begin music playback from 50s
         audio.currentTime = 50;
         audio.volume = 0;
         audio.play().then(() => {
           const fadeInDuration = 2000;
-          const fadeInInterval = 100;
-          const fadeInStep = 1 / (fadeInDuration / fadeInInterval);
+          const interval = 100;
+          const step = 1 / (fadeInDuration / interval);
           const fadeIn = setInterval(() => {
-            if (audio.volume < 1.0) {
-              audio.volume = Math.min(audio.volume + fadeInStep, 1.0);
-            } else {
-              clearInterval(fadeIn);
-            }
-          }, fadeInInterval);
+            audio.volume = Math.min(audio.volume + step, 1.0);
+            if (audio.volume >= 1.0) clearInterval(fadeIn);
+          }, interval);
         }).catch(err => {
-          console.warn("Playback blocked:", err);
+          console.warn("Playback error:", err);
         });
       }, 1000);
     });
@@ -132,15 +133,12 @@
     audio.addEventListener('timeupdate', () => {
       const t = audio.currentTime;
 
-      // Show lyric between 50s and 91s
       lyric.style.opacity = (t >= 50 && t <= 91) ? 1 : 0;
 
-      // Fade out between 88s and 91s
       if (t >= 88 && t <= 91) {
         audio.volume = (91 - t) / 3;
       }
 
-      // Stop at 91s
       if (t >= 91) {
         audio.pause();
         audio.currentTime = 0;
