@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <title>Carta</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -17,7 +15,6 @@
       overflow: hidden;
     }
 
-    /* Envelope */
     #envelope {
       position: absolute;
       top: 50%;
@@ -30,9 +27,8 @@
       border-radius: 10px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       cursor: pointer;
-      z-index: 2;
+      z-index: 4;
       transition: transform 1s ease, opacity 0.8s ease;
-      -webkit-transition: transform 1s ease, opacity 0.8s ease;
     }
 
     #seal {
@@ -46,9 +42,9 @@
       border-radius: 50%;
       padding: 6px;
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
+      pointer-events: none;
     }
 
-    /* Letter background */
     #letter {
       position: absolute;
       top: 0;
@@ -62,61 +58,61 @@
       background-repeat: no-repeat;
       opacity: 0;
       transition: opacity 1s ease-in-out;
-      -webkit-transition: opacity 1s ease-in-out;
-      z-index: 1;
+      z-index: 2;
     }
 
-    #lyric {
+    #introVideo {
       position: absolute;
-      bottom: 20px;
-      right: 30px;
-      max-width: 80%;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 16px 22px;
-      border-radius: 12px;
-      color: #cf6ba9;
-      font-size: 2em;
-      font-family: 'Brush Script MT', cursive;
-      text-shadow: 2px 2px 6px #000;
+      top: 50%;
+      left: 15%;
+      transform: translate(-50%, -50%);
+      width: 200px;
       opacity: 0;
-      transition: opacity 0.6s ease-in-out;
-      -webkit-transition: opacity 0.6s ease-in-out;
+      transition: opacity 3s ease;
+      z-index: 5;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
 
-  <!-- Envelope with heart seal -->
   <div id="envelope">
     <div id="seal">❤️</div>
   </div>
 
-  <!-- Letter reveal with image, audio & lyrics -->
   <div id="letter">
     <audio id="bg-audio" preload="auto">
-      <source src="te-presumo-v2.MP3" type="audio/mpeg">
+      <source src="no-me-aud.MP3" type="audio/mpeg">
       Tu navegador no soporta el elemento de audio.
     </audio>
-    <div id="lyric">Te presumo porque un verdadero amor nunca se esconde</div>
   </div>
+
+  <video id="introVideo" src="no-me-dejes1.mp4" muted playsinline></video>
 
   <script>
     const envelope = document.getElementById('envelope');
     const letter = document.getElementById('letter');
     const audio = document.getElementById('bg-audio');
-    const lyric = document.getElementById('lyric');
+    const video = document.getElementById('introVideo');
 
     envelope.addEventListener('click', () => {
       envelope.style.transform = 'translate(-50%, -50%) scale(0.1)';
       envelope.style.opacity = '0';
+
       setTimeout(() => {
         envelope.style.display = 'none';
         letter.style.opacity = '1';
 
-        // Begin music playback from 50s
-        audio.currentTime = 50;
+        // Sync and start both audio and video
+        video.currentTime = 0;
+        audio.currentTime = 0;
+
+        video.style.opacity = '1';
+        video.play();
+
         audio.volume = 0;
         audio.play().then(() => {
+          // Fade in audio
           const fadeInDuration = 2000;
           const interval = 100;
           const step = 1 / (fadeInDuration / interval);
@@ -124,21 +120,24 @@
             audio.volume = Math.min(audio.volume + step, 1.0);
             if (audio.volume >= 1.0) clearInterval(fadeIn);
           }, interval);
-        }).catch(err => {
-          console.warn("Playback error:", err);
+        }).catch(err => console.warn("Audio playback error:", err));
+
+        // Fade out video 3 seconds before audio ends
+        audio.addEventListener('loadedmetadata', () => {
+          const fadeOutTime = (audio.duration - 3) * 1000;
+          setTimeout(() => {
+            video.style.opacity = '0';
+          }, fadeOutTime);
         });
+
       }, 1000);
     });
 
     audio.addEventListener('timeupdate', () => {
       const t = audio.currentTime;
-
-      lyric.style.opacity = (t >= 50 && t <= 91) ? 1 : 0;
-
       if (t >= 88 && t <= 91) {
         audio.volume = (91 - t) / 3;
       }
-
       if (t >= 91) {
         audio.pause();
         audio.currentTime = 0;
