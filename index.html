@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Emanuel | Portfolio & Booking</title>
+  <title>Platinum Cutz</title>
   <style>
     body {
       margin: 0;
@@ -12,71 +12,68 @@
       color: #1c1c1e;
     }
 
-    header {
-      background: url('https://via.placeholder.com/1200x400?text=Your+Header+Image') center/cover no-repeat;
-      height: 400px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      position: relative;
+    /* Header Image */
+    .header-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
     }
 
-    .header-content {
-      background: rgba(255,255,255,0.85);
+    /* Shop Name */
+    .shop-name {
       padding: 20px 30px;
-      border-radius: 16px;
-      margin-bottom: 40px;
+      font-size: 2rem;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    /* Services Section */
+    .services {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .services h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
       text-align: center;
     }
 
-    .header-content h1 {
-      font-size: 2.5rem;
-      margin: 0;
+    .service-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 
-    .header-content button {
-      margin-top: 15px;
-      padding: 10px 20px;
+    .service-name {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    .service-price {
       font-size: 1rem;
-      border: none;
-      border-radius: 12px;
+      margin-left: 10px;
+    }
+
+    .book-btn {
+      padding: 10px 16px;
       background-color: #007aff;
       color: white;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.3s ease;
     }
 
-    .header-content button:hover {
+    .book-btn:hover {
       background-color: #005ecb;
-    }
-
-    .portfolio {
-      max-width: 900px;
-      margin: 60px auto;
-      padding: 0 20px;
-    }
-
-    .portfolio h2 {
-      font-size: 2rem;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .projects {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-    }
-
-    .project {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-
-    .project h3 {
-      margin-top: 0;
     }
 
     /* Modal */
@@ -88,6 +85,7 @@
       display: none;
       align-items: center;
       justify-content: center;
+      z-index: 999;
     }
 
     .modal-content {
@@ -97,9 +95,10 @@
       width: 90%;
       max-width: 400px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
     }
 
-    .modal-content h2 {
+    .modal-content h3 {
       margin-top: 0;
     }
 
@@ -128,79 +127,163 @@
     }
 
     .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
       background: none;
       border: none;
-      font-size: 1.2rem;
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
+      font-size: 1.5rem;
       cursor: pointer;
+      color: #333;
+    }
+
+    /* Portfolio Gallery */
+    .gallery {
+      max-width: 1000px;
+      margin: 60px auto;
+      padding: 0 20px;
+      text-align: center;
+    }
+
+    .gallery h2 {
+      font-size: 1.8rem;
+      margin-bottom: 30px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      background: white;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-item span {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 0.9rem;
+      padding: 8px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="header-content">
-      <h1>Emanuel</h1>
-      <button onclick="openModal()">Book Appointment</button>
-    </div>
-  </header>
+  <!-- Header Image -->
+  <img src="images/platinum-header.jpg" alt="Platinum Cutz Header" class="header-image" />
 
-  <!-- Portfolio -->
-  <section class="portfolio">
-    <h2>My Work</h2>
-    <div class="projects">
-      <div class="project">
-        <h3>IPTV Dashboard</h3>
-        <p>Custom console-like interface with branded loading animation and stream integration.</p>
+  <!-- Shop Name -->
+  <div class="shop-name">Platinum Cutz</div>
+
+  <!-- Services -->
+  <section class="services">
+    <h2>Available Bookings</h2>
+
+    <div class="service-item">
+      <div>
+        <span class="service-name">Haircut</span>
+        <span class="service-price">$10</span>
       </div>
-      <div class="project">
-        <h3>Quantum Logo Series</h3>
-        <p>Modern, electrifying branding for tech-forward apparel and digital identity.</p>
+      <button class="book-btn" onclick="openModal('Haircut')">Book Now</button>
+    </div>
+
+    <div class="service-item">
+      <div>
+        <span class="service-name">Beard Trim</span>
+        <span class="service-price">$10</span>
       </div>
-      <div class="project">
-        <h3>Meta Quest Monitor Setup</h3>
-        <p>Optimized workflow for using Quest 3 as a virtual display with clean UI overlays.</p>
-      </div>
+      <button class="book-btn" onclick="openModal('Beard Trim')">Book Now</button>
     </div>
   </section>
 
   <!-- Modal -->
-  <div class="modal" id="appointmentModal">
-    <button class="close-btn" onclick="closeModal()">×</button>
+  <div class="modal" id="bookingModal">
     <div class="modal-content">
-      <h2>Book Your Appointment</h2>
-      <form onsubmit="submitForm(event)">
+      <button class="close-btn" onclick="closeModal()">×</button>
+      <h3 id="modalService">Book Service</h3>
+      <form onsubmit="submitBooking(event)">
         <label for="clientName">Your Name</label>
         <input type="text" id="clientName" required />
 
         <label for="clientPhone">Phone Number</label>
         <input type="tel" id="clientPhone" placeholder="+1 312-555-0198" required />
 
-        <button type="submit">Confirm</button>
+        <button type="submit">Confirm Booking</button>
       </form>
     </div>
   </div>
 
+  <!-- Portfolio Gallery -->
+  <section class="gallery">
+    <h2>My Portfolio</h2>
+    <div class="gallery-grid">
+      <div class="gallery-item">
+        <img src="images/cut1.jpg" alt="Fade Cut" />
+        <span>Fade Cut</span>
+      </div>
+      <div class="gallery-item">
+        <img src="images/cut2.jpg" alt="Beard Sculpt" />
+        <span>Beard Sculpt</span>
+      </div>
+      <div class="gallery-item">
+        <img src="images/cut3.jpg" alt="Line-Up Detail" />
+        <span>Line-Up Detail</span>
+      </div>
+      <div class="gallery-item">
+        <img src="images/cut4.jpg" alt="Classic Taper" />
+        <span>Classic Taper</span>
+      </div>
+    </div>
+  </section>
+
   <script>
-    function openModal() {
-      document.getElementById('appointmentModal').style.display = 'flex';
+    let selectedService = "";
+
+    function openModal(service) {
+      selectedService = service;
+      document.getElementById('modalService').textContent = `Book: ${service}`;
+      document.getElementById('bookingModal').style.display = 'flex';
+
+      // Autofill from localStorage
+      const savedName = localStorage.getItem('clientName');
+      const savedPhone = localStorage.getItem('clientPhone');
+      if (savedName) document.getElementById('clientName').value = savedName;
+      if (savedPhone) document.getElementById('clientPhone').value = savedPhone;
     }
 
     function closeModal() {
-      document.getElementById('appointmentModal').style.display = 'none';
+      document.getElementById('bookingModal').style.display = 'none';
     }
 
-    function submitForm(e) {
+    function submitBooking(e) {
       e.preventDefault();
       const name = document.getElementById('clientName').value;
       const phone = document.getElementById('clientPhone').value;
-      alert(`Appointment booked for ${name}. SMS reminder will be sent to ${phone}.`);
+
+      // Save to localStorage
+      localStorage.setItem('clientName', name);
+      localStorage.setItem('clientPhone', phone);
+
+      alert(`Appointment for ${selectedService} booked!\nSMS reminder will be sent to ${phone}.`);
       closeModal();
     }
   </script>
 </body>
-</html>
+</
