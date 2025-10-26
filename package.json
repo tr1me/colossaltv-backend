@@ -12,6 +12,3 @@
     "sqlite3": "^5.1.2"
   }
 }
-app.get('/', (req, res) => {
-  res.send('COLOSSALTV backend is live');
-});
