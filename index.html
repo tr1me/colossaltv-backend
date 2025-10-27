@@ -49,8 +49,8 @@
   <div class="header d-flex justify-content-between align-items-center">
     <h2>COLOSSALTV</h2>
     <div>
-      <button class="btn btn-outline-light me-2">Rotate API Key</button>
-      <button class="btn btn-outline-light">Add Profile</button>
+      <button id="rotateKeyBtn" class="btn btn-outline-light me-2">Rotate API Key</button>
+      <button id="addProfileBtn" class="btn btn-outline-light">Add Profile</button>
     </div>
   </div>
 
@@ -67,15 +67,82 @@
       <div class="profile-card">
         <h4>VIPViewer <span class="status-active">● Active</span></h4>
         <p>Last Activity: Oct 26, 2:14 PM | App: Stremio</p>
-        <button class="btn btn-revoke">Revoke Access</button>
+        <button id="revokeBtn" class="btn btn-revoke">Revoke Access</button>
       </div>
-
       <div class="profile-card">
         <h4>MascotReveal <span class="status-revoked">● Revoked</span></h4>
         <p>Last Activity: Oct 25, 11:03 AM | App: Kodi</p>
-        <button class="btn btn-restore">Restore Access</button>
+        <button id="restoreBtn" class="btn btn-restore">Restore Access</button>
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add Profile
+      document.getElementById('addProfileBtn').addEventListener('click', () => {
+        fetch('http://localhost:3000/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'VIPViewer', theme: 'neon-dusk' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(`✅ Profile "${data.profile.name}" added`);
+        })
+        .catch(err => {
+          alert('❌ Failed to add profile');
+          console.error(err);
+        });
+      });
+
+      // Rotate API Key
+      document.getElementById('rotateKeyBtn').addEventListener('click', () => {
+        fetch('http://localhost:3000/rotate-key', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          alert(`🔑 New API Key: ${data.newKey}`);
+        })
+        .catch(err => {
+          alert('❌ Failed to rotate key');
+          console.error(err);
+        });
+      });
+
+      // Revoke Access
+      document.getElementById('revokeBtn').addEventListener('click', () => {
+        fetch('http://localhost:3000/revoke', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'VIPViewer' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(`🚫 Access revoked for ${data.profile.name}`);
+        })
+        .catch(err => {
+          alert('❌ Failed to revoke access');
+          console.error(err);
+        });
+      });
+
+      // Restore Access
+      document.getElementById('restoreBtn').addEventListener('click', () => {
+        fetch('http://localhost:3000/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'VIPViewer' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          alert(`✅ Access restored for ${data.profile.name}`);
+        })
+        .catch(err => {
+          alert('❌ Failed to restore access');
+          console.error(err);
+        });
+      });
+    });
+  </script>
 </body>
 </html>
