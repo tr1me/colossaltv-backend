@@ -1,13 +1,25 @@
+// server.js — COLOSSALTV backend
+
 const express = require('express');
 const dotenv = require('dotenv');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Load environment variables
+// Load environment variables from .env
 dotenv.config();
 
-// Middleware (optional: for JSON parsing, logging, etc.)
+// Middleware to parse JSON
 app.use(express.json());
+
+// In-memory profile store (for now)
+let profiles = [
+  {
+    name: 'VIPViewer',
+    status: 'active',
+    theme: 'neon-dusk',
+    lastSeen: 'just now'
+  }
+];
 
 // Root route — cinematic heartbeat
 app.get('/', (req, res) => {
@@ -22,9 +34,28 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Example route — profile status
+// GET /profile — return first profile
 app.get('/profile', (req, res) => {
-  res.json({ status: 'active', theme: 'neon-dusk', lastSeen: 'just now' });
+  res.json(profiles[0]);
+});
+
+// POST /profile — add a new profile
+app.post('/profile', (req, res) => {
+  const { name, theme } = req.body;
+  if (!name || !theme) {
+    return res.status(400).json({ error: 'Missing name or theme' });
+  }
+
+  const newProfile = {
+    name,
+    status: 'active',
+    theme,
+    lastSeen: new Date().toLocaleString()
+  };
+
+  profiles.push(newProfile);
+  console.log(`🆕 Profile added: ${name} with theme ${theme}`);
+  res.status(201).json({ message: 'Profile added', profile: newProfile });
 });
 
 // Start server
