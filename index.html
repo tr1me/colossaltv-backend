@@ -3,69 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <title>COLOSSALTV Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #111; color: #eee; text-align: center; }
-    button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    input { padding: 8px; margin: 10px; }
-    #result { margin-top: 20px; font-size: 18px; color: #0f0; }
-  </style>
 </head>
 <body>
   <h1>COLOSSALTV Dashboard</h1>
+
   <button id="addProfileBtn">Add Profile</button>
   <button id="revokeBtn">Revoke Access</button>
   <button id="restoreBtn">Restore Access</button>
   <button id="rotateKeyBtn">Rotate API Key</button>
-  <br>
+
+  <br><br>
   <input type="text" id="searchInput" placeholder="Enter profile name">
   <button id="searchBtn">Search Profile</button>
-  <div id="result"></div>
 
   <script>
     const API_BASE = "http://localhost:3000"; 
-    // Replace with Fly.io URL once deployed, e.g. "https://colossaltv-service.fly.dev"
+    // Replace with Fly.io URL once deployed
 
     // Add Profile
     document.getElementById("addProfileBtn").addEventListener("click", () => {
       fetch(`${API_BASE}/profile`, { method: "POST" })
         .then(res => res.json())
-        .then(data => {
-          document.getElementById("result").innerText = `✅ Profile "${data.profile.name}" added`;
-        })
-        .catch(() => document.getElementById("result").innerText = "❌ Failed to add profile");
+        .then(data => alert(`✅ Profile "${data.profile.name}" added`))
+        .catch(() => alert("❌ Failed to add profile"));
     });
 
     // Revoke Access
     document.getElementById("revokeBtn").addEventListener("click", () => {
       fetch(`${API_BASE}/revoke`, { method: "POST" })
         .then(res => res.json())
-        .then(data => {
-          document.getElementById("result").innerText = `🚫 Access revoked for ${data.profile.name}`;
-        })
-        .catch(() => document.getElementById("result").innerText = "❌ Failed to revoke access");
+        .then(data => alert(`🚫 Access revoked for ${data.profile.name}`))
+        .catch(() => alert("❌ Failed to revoke access"));
     });
 
     // Restore Access
     document.getElementById("restoreBtn").addEventListener("click", () => {
       fetch(`${API_BASE}/restore`, { method: "POST" })
         .then(res => res.json())
-        .then(data => {
-          document.getElementById("result").innerText = `✅ Access restored for ${data.profile.name}`;
-        })
-        .catch(() => document.getElementById("result").innerText = "❌ Failed to restore access");
+        .then(data => alert(`✅ Access restored for ${data.profile.name}`))
+        .catch(() => alert("❌ Failed to restore access"));
     });
 
     // Rotate API Key
     document.getElementById("rotateKeyBtn").addEventListener("click", () => {
       fetch(`${API_BASE}/rotate-key`, { method: "POST" })
         .then(res => res.json())
-        .then(data => {
-          document.getElementById("result").innerText = `🔑 New API Key: ${data.apiKey}`;
-        })
-        .catch(() => document.getElementById("result").innerText = "❌ Failed to rotate key");
+        .then(data => alert(`🔑 New API Key: ${data.apiKey}`))
+        .catch(() => alert("❌ Failed to rotate key"));
     });
 
-    // Search Profile
+    // 🔍 Search Profile
     document.getElementById("searchBtn").addEventListener("click", () => {
       const name = document.getElementById("searchInput").value;
       fetch(`${API_BASE}/profile/${name}`)
@@ -73,10 +60,8 @@
           if (!res.ok) throw new Error("Profile not found");
           return res.json();
         })
-        .then(data => {
-          document.getElementById("result").innerText = `✅ Found profile: ${data.profile.name}, Status: ${data.profile.status}`;
-        })
-        .catch(() => document.getElementById("result").innerText = "❌ Profile not found");
+        .then(data => alert(`✅ Found profile: ${data.profile.name}, Status: ${data.profile.status}`))
+        .catch(() => alert("❌ Profile not found"));
     });
   </script>
 </body>
