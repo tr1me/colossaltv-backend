@@ -1,67 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>COLOSSALTV Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .header {
+      background-color: #1a1a1a;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #333;
+    }
+    .sidebar {
+      background-color: #121212;
+      height: 100vh;
+      padding-top: 2rem;
+      border-right: 1px solid #333;
+    }
+    .sidebar a {
+      color: #ccc;
+      display: block;
+      padding: 0.75rem 1.5rem;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background-color: #1f1f1f;
+      color: #fff;
+    }
+    .profile-card {
+      background-color: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .status-active { color: #0f0; }
+    .status-revoked { color: #f00; }
+    .btn-revoke { background-color: #f00; color: #fff; }
+    .btn-restore { background-color: #0f0; color: #000; }
+  </style>
 </head>
 <body>
-  <h1>COLOSSALTV Dashboard</h1>
+  <div class="header d-flex justify-content-between align-items-center">
+    <h2>COLOSSALTV</h2>
+    <div>
+      <button id="rotateKeyBtn" class="btn btn-outline-light me-2">Rotate API Key</button>
+      <button id="addProfileBtn" class="btn btn-outline-light">Add Profile</button>
+    </div>
+  </div>
 
-  <button id="addProfileBtn">Add Profile</button>
-  <button id="revokeBtn">Revoke Access</button>
-  <button id="restoreBtn">Restore Access</button>
-  <button id="rotateKeyBtn">Rotate API Key</button>
+  <div class="d-flex">
+    <div class="sidebar">
+      <a href="#">📂 Profiles</a>
+      <a href="#">📊 Activity Logs</a>
+      <a href="#">🔐 API Settings</a>
+      <a href="#">🗺️ Device Map</a>
+      <a href="#">📘 Help</a>
+    </div>
 
-  <br><br>
-  <input type="text" id="searchInput" placeholder="Enter profile name">
-  <button id="searchBtn">Search Profile</button>
+    <div class="container-fluid p-4">
+      <!-- Existing profile cards -->
+      <div class="profile-card">
+        <h4>VIPViewer <span class="status-active">● Active</span></h4>
+        <p>Last Activity: Oct 26, 2:14 PM | App: Stremio</p>
+        <button id="revokeBtn" class="btn btn-revoke">Revoke Access</button>
+      </div>
+      <div class="profile-card">
+        <h4>MascotReveal <span class="status-revoked">● Revoked</span></h4>
+        <p>Last Activity: Oct 25, 11:03 AM | App: Kodi</p>
+        <button id="restoreBtn" class="btn btn-restore">Restore Access</button>
+      </div>
+
+      <!-- 🔍 Search Profile -->
+      <div class="profile-card">
+        <h4>Search Profiles</h4>
+        <input type="text" id="searchInput" class="form-control mb-2" placeholder="Enter profile name">
+        <button id="searchBtn" class="btn btn-outline-light">Search Profile</button>
+      </div>
+
+      <!-- 📋 List All Profiles -->
+      <div class="profile-card">
+        <h4>All Profiles</h4>
+        <button id="listProfilesBtn" class="btn btn-outline-light">List All Profiles</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const API_BASE = "http://localhost:3000"; 
     // Replace with Fly.io URL once deployed
 
-    // Add Profile
-    document.getElementById("addProfileBtn").addEventListener("click", () => {
-      fetch(`${API_BASE}/profile`, { method: "POST" })
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add Profile
+      document.getElementById('addProfileBtn').addEventListener('click', () => {
+        fetch(`${API_BASE}/profile`, { method: 'POST' })
         .then(res => res.json())
         .then(data => alert(`✅ Profile "${data.profile.name}" added`))
-        .catch(() => alert("❌ Failed to add profile"));
-    });
+        .catch(err => alert('❌ Failed to add profile'));
+      });
 
-    // Revoke Access
-    document.getElementById("revokeBtn").addEventListener("click", () => {
-      fetch(`${API_BASE}/revoke`, { method: "POST" })
-        .then(res => res.json())
-        .then(data => alert(`🚫 Access revoked for ${data.profile.name}`))
-        .catch(() => alert("❌ Failed to revoke access"));
-    });
-
-    // Restore Access
-    document.getElementById("restoreBtn").addEventListener("click", () => {
-      fetch(`${API_BASE}/restore`, { method: "POST" })
-        .then(res => res.json())
-        .then(data => alert(`✅ Access restored for ${data.profile.name}`))
-        .catch(() => alert("❌ Failed to restore access"));
-    });
-
-    // Rotate API Key
-    document.getElementById("rotateKeyBtn").addEventListener("click", () => {
-      fetch(`${API_BASE}/rotate-key`, { method: "POST" })
+      // Rotate API Key
+      document.getElementById('rotateKeyBtn').addEventListener('click', () => {
+        fetch(`${API_BASE}/rotate-key`, { method: 'POST' })
         .then(res => res.json())
         .then(data => alert(`🔑 New API Key: ${data.apiKey}`))
-        .catch(() => alert("❌ Failed to rotate key"));
-    });
+        .catch(err => alert('❌ Failed to rotate key'));
+      });
 
-    // 🔍 Search Profile
-    document.getElementById("searchBtn").addEventListener("click", () => {
-      const name = document.getElementById("searchInput").value;
-      fetch(`${API_BASE}/profile/${name}`)
+      // Revoke Access
+      document.getElementById('revokeBtn').addEventListener('click', () => {
+        fetch(`${API_BASE}/revoke`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => alert(`🚫 Access revoked for ${data.profile.name}`))
+        .catch(err => alert('❌ Failed to revoke access'));
+      });
+
+      // Restore Access
+      document.getElementById('restoreBtn').addEventListener('click', () => {
+        fetch(`${API_BASE}/restore`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => alert(`✅ Access restored for ${data.profile.name}`))
+        .catch(err => alert('❌ Failed to restore access'));
+      });
+
+      // 🔍 Search Profile
+      document.getElementById('searchBtn').addEventListener('click', () => {
+        const name = document.getElementById('searchInput').value;
+        fetch(`${API_BASE}/profile/${name}`)
         .then(res => {
           if (!res.ok) throw new Error("Profile not found");
           return res.json();
         })
         .then(data => alert(`✅ Found profile: ${data.profile.name}, Status: ${data.profile.status}`))
         .catch(() => alert("❌ Profile not found"));
+      });
+
+      // 📋 List All Profiles
+      document.getElementById('listProfilesBtn').addEventListener('click', () => {
+        fetch(`${API_BASE}/profiles`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.profiles.length === 0) {
+            alert("📋 No profiles found");
+          } else {
+            const list = data.profiles.map(p => `${p.name} (${p.status})`).join("\n");
+            alert(`📋 Profiles:\n${list}`);
+          }
+        })
+        .catch(() => alert("❌ Failed to list profiles"));
+      });
     });
   </script>
 </body>
