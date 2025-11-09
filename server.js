@@ -44,7 +44,7 @@ app.post("/rotate-key", (req, res) => {
   res.json({ success: true, apiKey: newKey });
 });
 
-// Search Profile
+// 🔍 Search Profile (new)
 app.get("/profile/:name", (req, res) => {
   const name = req.params.name;
   const profile = profiles.find(p => p.name === name);
