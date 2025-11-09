@@ -1,5 +1,8 @@
-app = "colossaltv-backend"  # Or your actual Fly.io app name
-primary_region = "ord"      # Chicago region (you can change this)
+app = "colossaltv-backend"
+primary_region = "ord"
+
+[build]
+  builder = "heroku/buildpacks:20"
 
 [env]
   PORT = "3000"
