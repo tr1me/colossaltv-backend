@@ -1,147 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>COLOSSALTV Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body {
-      background-color: #0f0f0f;
-      color: #ffffff;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    .header {
-      background-color: #1a1a1a;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid #333;
-    }
-    .sidebar {
-      background-color: #121212;
-      height: 100vh;
-      padding-top: 2rem;
-      border-right: 1px solid #333;
-    }
-    .sidebar a {
-      color: #ccc;
-      display: block;
-      padding: 0.75rem 1.5rem;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      background-color: #1f1f1f;
-      color: #fff;
-    }
-    .profile-card {
-      background-color: #1f1f1f;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-    .status-active { color: #0f0; }
-    .status-revoked { color: #f00; }
-    .btn-revoke { background-color: #f00; color: #fff; }
-    .btn-restore { background-color: #0f0; color: #000; }
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; text-align: center; }
+    button { margin: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    input { padding: 8px; margin: 10px; }
+    #result { margin-top: 20px; font-size: 18px; color: #0f0; }
   </style>
 </head>
 <body>
-  <div class="header d-flex justify-content-between align-items-center">
-    <h2>COLOSSALTV</h2>
-    <div>
-      <button id="rotateKeyBtn" class="btn btn-outline-light me-2">Rotate API Key</button>
-      <button id="addProfileBtn" class="btn btn-outline-light">Add Profile</button>
-    </div>
-  </div>
-
-  <div class="d-flex">
-    <div class="sidebar">
-      <a href="#">📂 Profiles</a>
-      <a href="#">📊 Activity Logs</a>
-      <a href="#">🔐 API Settings</a>
-      <a href="#">🗺️ Device Map</a>
-      <a href="#">📘 Help</a>
-    </div>
-
-    <div class="container-fluid p-4">
-      <div class="profile-card">
-        <h4>VIPViewer <span class="status-active">● Active</span></h4>
-        <p>Last Activity: Oct 26, 2:14 PM | App: Stremio</p>
-        <button id="revokeBtn" class="btn btn-revoke">Revoke Access</button>
-      </div>
-      <div class="profile-card">
-        <h4>MascotReveal <span class="status-revoked">● Revoked</span></h4>
-        <p>Last Activity: Oct 25, 11:03 AM | App: Kodi</p>
-        <button id="restoreBtn" class="btn btn-restore">Restore Access</button>
-      </div>
-    </div>
-  </div>
+  <h1>COLOSSALTV Dashboard</h1>
+  <button id="addProfileBtn">Add Profile</button>
+  <button id="revokeBtn">Revoke Access</button>
+  <button id="restoreBtn">Restore Access</button>
+  <button id="rotateKeyBtn">Rotate API Key</button>
+  <br>
+  <input type="text" id="searchInput" placeholder="Enter profile name">
+  <button id="searchBtn">Search Profile</button>
+  <div id="result"></div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Add Profile
-      document.getElementById('addProfileBtn').addEventListener('click', () => {
-        fetch('http://localhost:3000/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'VIPViewer', theme: 'neon-dusk' })
-        })
-        .then(res => res.json())
-        .then(data => {
-          alert(`✅ Profile "${data.profile.name}" added`);
-        })
-        .catch(err => {
-          alert('❌ Failed to add profile');
-          console.error(err);
-        });
-      });
+    const API_BASE = "http://localhost:3000"; 
+    // Replace with Fly.io URL once deployed, e.g. "https://colossaltv-service.fly.dev"
 
-      // Rotate API Key
-      document.getElementById('rotateKeyBtn').addEventListener('click', () => {
-        fetch('http://localhost:3000/rotate-key', { method: 'POST' })
+    // Add Profile
+    document.getElementById("addProfileBtn").addEventListener("click", () => {
+      fetch(`${API_BASE}/profile`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
-          alert(`🔑 New API Key: ${data.newKey}`);
+          document.getElementById("result").innerText = `✅ Profile "${data.profile.name}" added`;
         })
-        .catch(err => {
-          alert('❌ Failed to rotate key');
-          console.error(err);
-        });
-      });
+        .catch(() => document.getElementById("result").innerText = "❌ Failed to add profile");
+    });
 
-      // Revoke Access
-      document.getElementById('revokeBtn').addEventListener('click', () => {
-        fetch('http://localhost:3000/revoke', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'VIPViewer' })
-        })
+    // Revoke Access
+    document.getElementById("revokeBtn").addEventListener("click", () => {
+      fetch(`${API_BASE}/revoke`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
-          alert(`🚫 Access revoked for ${data.profile.name}`);
+          document.getElementById("result").innerText = `🚫 Access revoked for ${data.profile.name}`;
         })
-        .catch(err => {
-          alert('❌ Failed to revoke access');
-          console.error(err);
-        });
-      });
+        .catch(() => document.getElementById("result").innerText = "❌ Failed to revoke access");
+    });
 
-      // Restore Access
-      document.getElementById('restoreBtn').addEventListener('click', () => {
-        fetch('http://localhost:3000/restore', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'VIPViewer' })
-        })
+    // Restore Access
+    document.getElementById("restoreBtn").addEventListener("click", () => {
+      fetch(`${API_BASE}/restore`, { method: "POST" })
         .then(res => res.json())
         .then(data => {
-          alert(`✅ Access restored for ${data.profile.name}`);
+          document.getElementById("result").innerText = `✅ Access restored for ${data.profile.name}`;
         })
-        .catch(err => {
-          alert('❌ Failed to restore access');
-          console.error(err);
-        });
-      });
+        .catch(() => document.getElementById("result").innerText = "❌ Failed to restore access");
+    });
+
+    // Rotate API Key
+    document.getElementById("rotateKeyBtn").addEventListener("click", () => {
+      fetch(`${API_BASE}/rotate-key`, { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("result").innerText = `🔑 New API Key: ${data.apiKey}`;
+        })
+        .catch(() => document.getElementById("result").innerText = "❌ Failed to rotate key");
+    });
+
+    // Search Profile
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const name = document.getElementById("searchInput").value;
+      fetch(`${API_BASE}/profile/${name}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Profile not found");
+          return res.json();
+        })
+        .then(data => {
+          document.getElementById("result").innerText = `✅ Found profile: ${data.profile.name}, Status: ${data.profile.status}`;
+        })
+        .catch(() => document.getElementById("result").innerText = "❌ Profile not found");
     });
   </script>
 </body>
