@@ -8,7 +8,7 @@ primary_region = "ord"
   PORT = "3000"
 
 [mounts]
-  source = "colossaltv_data"   # replace with actual volume name
+  source = "vol_4o5pyn6n35j1869v"   # replace with actual volume name
   destination = "/data"
 
 [[services]]
