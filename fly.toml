@@ -2,7 +2,7 @@ app = "colossaltv-backend"
 primary_region = "ord"
 
 [build]
-  builder = "heroku/buildpacks:20"
+  builder = "heroku/buildpacks:22"
 
 [env]
   PORT = "3000"
