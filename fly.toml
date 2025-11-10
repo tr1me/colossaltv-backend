@@ -7,6 +7,10 @@ primary_region = "ord"
 [env]
   PORT = "3000"
 
+[mounts]
+  source = "colossaltv_data"   # replace with actual volume name
+  destination = "/data"
+
 [[services]]
   internal_port = 3000
   protocol = "tcp"
