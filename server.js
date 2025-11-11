@@ -58,7 +58,3 @@ app.get("/profile/:name", (req, res) => {
     res.status(404).json({ success: false, message: "Profile not found" });
   }
 });
-
-app.listen(PORT, () => {
-  console.log(`✨ COLOSSALTV backend running on port ${PORT}`);
-});
