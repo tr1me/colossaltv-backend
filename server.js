@@ -13,7 +13,7 @@ app.listen(PORT, "0.0.0.0", () => {
 // In-memory profiles
 let profiles = [];
 
-// Add Profile (accepts name from request body)
+// Add Profile
 app.post("/profile", (req, res) => {
   const { name } = req.body;
   if (!name) {
@@ -23,13 +23,14 @@ app.post("/profile", (req, res) => {
   const newKey = Math.random().toString(36).substring(2, 12);
   const newProfile = { name, status: "active", apiKey: newKey };
   profiles.push(newProfile);
+
   res.json({ success: true, profile: newProfile });
 });
 
 // Revoke Access
 app.post("/revoke", (req, res) => {
   const { name } = req.body;
-  const profile = profiles.find(p => p.name === name);
+  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (profile) {
     profile.status = "revoked";
     res.json({ success: true, profile });
@@ -41,7 +42,7 @@ app.post("/revoke", (req, res) => {
 // Restore Access
 app.post("/restore", (req, res) => {
   const { name } = req.body;
-  const profile = profiles.find(p => p.name === name);
+  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (profile) {
     profile.status = "active";
     res.json({ success: true, profile });
@@ -50,10 +51,10 @@ app.post("/restore", (req, res) => {
   }
 });
 
-// Rotate API Key (per profile)
+// Rotate API Key
 app.post("/rotate-key", (req, res) => {
   const { name } = req.body;
-  const profile = profiles.find(p => p.name === name);
+  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (profile) {
     const newKey = Math.random().toString(36).substring(2, 12);
     profile.apiKey = newKey;
@@ -66,7 +67,7 @@ app.post("/rotate-key", (req, res) => {
 // Delete Profile
 app.post("/delete", (req, res) => {
   const { name } = req.body;
-  const index = profiles.findIndex(p => p.name === name);
+  const index = profiles.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
   if (index !== -1) {
     const removed = profiles.splice(index, 1)[0];
     res.json({ success: true, profile: removed });
@@ -78,7 +79,7 @@ app.post("/delete", (req, res) => {
 // Search Profile
 app.get("/profile/:name", (req, res) => {
   const name = req.params.name;
-  const profile = profiles.find(p => p.name === name);
+  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (profile) {
     res.json({ success: true, profile });
   } else {
@@ -86,7 +87,10 @@ app.get("/profile/:name", (req, res) => {
   }
 });
 
-// List All Profiles
+// List All Profiles (alphabetical)
 app.get("/profiles", (req, res) => {
-  res.json({ success: true, profiles });
+  const sorted = [...profiles].sort((a, b) =>
+    a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+  );
+  res.json({ success: true, profiles: sorted });
 });
