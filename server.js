@@ -13,7 +13,7 @@ app.listen(PORT, "0.0.0.0", () => {
 // In-memory profiles
 let profiles = [];
 
-// Add Profile (now accepts a name from request body)
+// Add Profile (accepts name from request body)
 app.post("/profile", (req, res) => {
   const { name } = req.body;
   if (!name) {
@@ -25,9 +25,14 @@ app.post("/profile", (req, res) => {
   res.json({ success: true, profile: newProfile });
 });
 
-// Revoke Access (still targets VIPViewer for now)
+// Revoke Access (accepts name from request body)
 app.post("/revoke", (req, res) => {
-  const profile = profiles.find(p => p.name === "VIPViewer");
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Name is required" });
+  }
+
+  const profile = profiles.find(p => p.name === name);
   if (profile) {
     profile.status = "revoked";
     res.json({ success: true, profile });
@@ -36,9 +41,14 @@ app.post("/revoke", (req, res) => {
   }
 });
 
-// Restore Access (still targets VIPViewer for now)
+// Restore Access (accepts name from request body)
 app.post("/restore", (req, res) => {
-  const profile = profiles.find(p => p.name === "VIPViewer");
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Name is required" });
+  }
+
+  const profile = profiles.find(p => p.name === name);
   if (profile) {
     profile.status = "active";
     res.json({ success: true, profile });
@@ -53,7 +63,7 @@ app.post("/rotate-key", (req, res) => {
   res.json({ success: true, apiKey: newKey });
 });
 
-// 🔍 Search Profile (new)
+// 🔍 Search Profile
 app.get("/profile/:name", (req, res) => {
   const name = req.params.name;
   const profile = profiles.find(p => p.name === name);
@@ -63,4 +73,9 @@ app.get("/profile/:name", (req, res) => {
   } else {
     res.status(404).json({ success: false, message: "Profile not found" });
   }
+});
+
+// 📋 List All Profiles
+app.get("/profiles", (req, res) => {
+  res.json({ success: true, profiles });
 });
