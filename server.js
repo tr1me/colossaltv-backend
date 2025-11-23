@@ -20,18 +20,15 @@ app.post("/profile", (req, res) => {
     return res.status(400).json({ success: false, message: "Name is required" });
   }
 
-  const newProfile = { name, status: "active" };
+  const newKey = Math.random().toString(36).substring(2, 12);
+  const newProfile = { name, status: "active", apiKey: newKey };
   profiles.push(newProfile);
   res.json({ success: true, profile: newProfile });
 });
 
-// Revoke Access (accepts name from request body)
+// Revoke Access
 app.post("/revoke", (req, res) => {
   const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ success: false, message: "Name is required" });
-  }
-
   const profile = profiles.find(p => p.name === name);
   if (profile) {
     profile.status = "revoked";
@@ -41,13 +38,9 @@ app.post("/revoke", (req, res) => {
   }
 });
 
-// Restore Access (accepts name from request body)
+// Restore Access
 app.post("/restore", (req, res) => {
   const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ success: false, message: "Name is required" });
-  }
-
   const profile = profiles.find(p => p.name === name);
   if (profile) {
     profile.status = "active";
@@ -57,17 +50,35 @@ app.post("/restore", (req, res) => {
   }
 });
 
-// Rotate API Key
+// Rotate API Key (per profile)
 app.post("/rotate-key", (req, res) => {
-  const newKey = Math.random().toString(36).substring(2, 12);
-  res.json({ success: true, apiKey: newKey });
+  const { name } = req.body;
+  const profile = profiles.find(p => p.name === name);
+  if (profile) {
+    const newKey = Math.random().toString(36).substring(2, 12);
+    profile.apiKey = newKey;
+    res.json({ success: true, profile });
+  } else {
+    res.status(404).json({ success: false, message: "Profile not found" });
+  }
 });
 
-// 🔍 Search Profile
+// Delete Profile
+app.post("/delete", (req, res) => {
+  const { name } = req.body;
+  const index = profiles.findIndex(p => p.name === name);
+  if (index !== -1) {
+    const removed = profiles.splice(index, 1)[0];
+    res.json({ success: true, profile: removed });
+  } else {
+    res.status(404).json({ success: false, message: "Profile not found" });
+  }
+});
+
+// Search Profile
 app.get("/profile/:name", (req, res) => {
   const name = req.params.name;
   const profile = profiles.find(p => p.name === name);
-
   if (profile) {
     res.json({ success: true, profile });
   } else {
@@ -75,7 +86,7 @@ app.get("/profile/:name", (req, res) => {
   }
 });
 
-// 📋 List All Profiles
+// List All Profiles
 app.get("/profiles", (req, res) => {
   res.json({ success: true, profiles });
 });
