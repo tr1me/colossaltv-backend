@@ -10,7 +10,9 @@
     .btn-add { background: #0f0; color: #000; }
     .btn-revoke { background: #f00; color: #fff; }
     .btn-restore { background: #0ff; color: #000; }
-    .btn-refresh { background: #555; color: #fff; }
+    .btn-rotate { background: #ff0; color: #000; }
+    .btn-delete { background: #555; color: #fff; }
+    .btn-refresh { background: #888; color: #fff; }
   </style>
 </head>
 <body>
@@ -25,78 +27,62 @@
 
     async function addProfile() {
       const name = prompt("Enter a profile name:");
-      if (!name) {
-        alert("Profile name is required!");
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}/profile`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          renderProfile(data.profile);
-        } else {
-          alert("Failed to add profile");
-        }
-      } catch {
-        alert("Error adding profile");
-      }
+      if (!name) return alert("Profile name is required!");
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.success) renderProfile(data.profile);
     }
 
     async function revokeProfile(name) {
-      try {
-        const res = await fetch(`${API_BASE}/revoke`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Profile "${name}" revoked`);
-          listProfiles();
-        } else {
-          alert("Failed to revoke access");
-        }
-      } catch {
-        alert("Error revoking profile");
-      }
+      await action("/revoke", name, `Profile "${name}" revoked`);
     }
 
     async function restoreProfile(name) {
-      try {
-        const res = await fetch(`${API_BASE}/restore`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Profile "${name}" restored`);
-          listProfiles();
-        } else {
-          alert("Failed to restore access");
-        }
-      } catch {
-        alert("Error restoring profile");
+      await action("/restore", name, `Profile "${name}" restored`);
+    }
+
+    async function rotateKey(name) {
+      const res = await fetch(`${API_BASE}/rotate-key`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`API Key for "${name}" rotated: ${data.profile.apiKey}`);
+        listProfiles();
+      }
+    }
+
+    async function deleteProfile(name) {
+      await action("/delete", name, `Profile "${name}" deleted`);
+    }
+
+    async function action(endpoint, name, successMsg) {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(successMsg);
+        listProfiles();
+      } else {
+        alert("Action failed");
       }
     }
 
     async function listProfiles() {
-      try {
-        const res = await fetch(`${API_BASE}/profiles`);
-        const data = await res.json();
-        const container = document.getElementById("profiles");
-        container.innerHTML = "";
-        if (data.success && data.profiles.length > 0) {
-          data.profiles.forEach(p => renderProfile(p));
-        } else {
-          container.innerHTML = "<p>No profiles found</p>";
-        }
-      } catch {
-        alert("Error fetching profiles");
+      const res = await fetch(`${API_BASE}/profiles`);
+      const data = await res.json();
+      const container = document.getElementById("profiles");
+      container.innerHTML = "";
+      if (data.success && data.profiles.length > 0) {
+        data.profiles.forEach(p => renderProfile(p));
+      } else {
+        container.innerHTML = "<p>No profiles found</p>";
       }
     }
 
@@ -106,8 +92,11 @@
       card.className = "profile-card";
       card.innerHTML = `
         <h4>${profile.name} (${profile.status})</h4>
-        <button class="btn-revoke" onclick="revokeProfile('${profile.name}')">Revoke Access</button>
-        <button class="btn-restore" onclick="restoreProfile('${profile.name}')">Restore Access</button>
+        <p>API Key: ${profile.apiKey || "Not set"}</p>
+        <button class="btn-revoke" onclick="revokeProfile('${profile.name}')">Revoke</button>
+        <button class="btn-restore" onclick="restoreProfile('${profile.name}')">Restore</button>
+        <button class="btn-rotate" onclick="rotateKey('${profile.name}')">Rotate Key</button>
+        <button class="btn-delete" onclick="deleteProfile('${profile.name}')">Delete</button>
       `;
       container.appendChild(card);
     }
