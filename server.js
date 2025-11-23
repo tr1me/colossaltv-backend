@@ -9,17 +9,23 @@ app.use(express.json());
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✨ COLOSSALTV backend running on port ${PORT}`);
 });
+
 // In-memory profiles
 let profiles = [];
 
-// Add Profile
+// Add Profile (now accepts a name from request body)
 app.post("/profile", (req, res) => {
-  const newProfile = { name: "VIPViewer", status: "active" };
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Name is required" });
+  }
+
+  const newProfile = { name, status: "active" };
   profiles.push(newProfile);
   res.json({ success: true, profile: newProfile });
 });
 
-// Revoke Access
+// Revoke Access (still targets VIPViewer for now)
 app.post("/revoke", (req, res) => {
   const profile = profiles.find(p => p.name === "VIPViewer");
   if (profile) {
@@ -30,7 +36,7 @@ app.post("/revoke", (req, res) => {
   }
 });
 
-// Restore Access
+// Restore Access (still targets VIPViewer for now)
 app.post("/restore", (req, res) => {
   const profile = profiles.find(p => p.name === "VIPViewer");
   if (profile) {
