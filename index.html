@@ -22,7 +22,7 @@
   <button class="btn-add" onclick="addProfile()">Add Profile</button>
   <button class="btn-refresh" onclick="listProfiles()">Refresh Profiles</button>
 
-  <!-- Search Profile UI -->
+  <!-- Search Profile -->
   <div>
     <input id="searchName" placeholder="Enter profile name">
     <button class="btn-search" onclick="searchProfile()">Search Profile</button>
@@ -42,16 +42,12 @@
         body: JSON.stringify({ name })
       });
       const data = await res.json();
-      if (data.success) renderProfile(data.profile);
+      if (data.success) listProfiles(); // refresh to keep alphabetical order
     }
 
-    async function revokeProfile(name) {
-      await action("/revoke", name, `Profile "${name}" revoked`);
-    }
-
-    async function restoreProfile(name) {
-      await action("/restore", name, `Profile "${name}" restored`);
-    }
+    async function revokeProfile(name) { await action("/revoke", name, `Profile "${name}" revoked`); }
+    async function restoreProfile(name) { await action("/restore", name, `Profile "${name}" restored`); }
+    async function deleteProfile(name) { await action("/delete", name, `Profile "${name}" deleted`); }
 
     async function rotateKey(name) {
       const res = await fetch(`${API_BASE}/rotate-key`, {
@@ -63,10 +59,6 @@
         alert(`API Key for "${name}" rotated: ${data.profile.apiKey}`);
         listProfiles();
       }
-    }
-
-    async function deleteProfile(name) {
-      await action("/delete", name, `Profile "${name}" deleted`);
     }
 
     async function action(endpoint, name, successMsg) {
@@ -89,7 +81,10 @@
       const container = document.getElementById("profiles");
       container.innerHTML = "";
       if (data.success && data.profiles.length > 0) {
-        data.profiles.forEach(p => renderProfile(p));
+        // Sort alphabetically before rendering (extra safety)
+        data.profiles
+          .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+          .forEach(p => renderProfile(p));
       } else {
         container.innerHTML = "<p>No profiles found</p>";
       }
@@ -118,16 +113,4 @@
       card.innerHTML = `
         <h4>${profile.name} (${profile.status})</h4>
         <p>API Key: ${profile.apiKey || "Not set"}</p>
-        <button class="btn-revoke" onclick="revokeProfile('${profile.name}')">Revoke</button>
-        <button class="btn-restore" onclick="restoreProfile('${profile.name}')">Restore</button>
-        <button class="btn-rotate" onclick="rotateKey('${profile.name}')">Rotate Key</button>
-        <button class="btn-delete" onclick="deleteProfile('${profile.name}')">Delete</button>
-      `;
-      container.appendChild(card);
-    }
-
-    // Load profiles on page start
-    listProfiles();
-  </script>
-</body>
-</html>
+        <button class="
