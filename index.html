@@ -10,7 +10,6 @@
     .btn-add { background: #0f0; color: #000; }
     .btn-revoke { background: #f00; color: #fff; }
     .btn-restore { background: #0ff; color: #000; }
-    .btn-rotate { background: #ff0; color: #000; }
     .btn-delete { background: #555; color: #fff; }
     .btn-refresh { background: #888; color: #fff; }
     .btn-search { background: #06f; color: #fff; }
@@ -18,8 +17,9 @@
   </style>
 </head>
 <body>
-  <h2><img src="ColossallogoMAIN.png" alt="COLOSSALTV Logo" style="height:40px; vertical-align:middle;">
-  Dashboard
+  <h2>
+    <img src="colossaltv.png" alt="COLOSSALTV Logo" style="height:40px; vertical-align:middle;">
+    Dashboard
   </h2>
   <button class="btn-add" onclick="addProfile()">Add Profile</button>
   <button class="btn-refresh" onclick="listProfiles()">Refresh Profiles</button>
@@ -34,107 +34,63 @@
   <div id="profiles"></div>
 
   <script>
-    const API_BASE = "https://colossaltv-backend.fly.dev";
+    const API_BASE = "http://localhost:3000"; // adjust if deployed
 
     async function addProfile() {
       const name = prompt("Enter a profile name:");
       if (!name) return alert("Profile name is required!");
-      try {
-        const res = await fetch(`${API_BASE}/profile`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Profile "${name}" added`);
-          listProfiles(); // refresh to keep alphabetical order
-        } else {
-          alert("Failed to add profile");
-        }
-      } catch (err) {
-        alert("Error adding profile: " + err.message);
-      }
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.success) listProfiles();
     }
 
     async function revokeProfile(name) { await action("/revoke", name, `Profile "${name}" revoked`); }
     async function restoreProfile(name) { await action("/restore", name, `Profile "${name}" restored`); }
     async function deleteProfile(name) { await action("/delete", name, `Profile "${name}" deleted`); }
 
-    async function rotateKey(name) {
-      try {
-        const res = await fetch(`${API_BASE}/rotate-key`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`API Key for "${name}" rotated: ${data.profile.apiKey}`);
-          listProfiles();
-        } else {
-          alert("Failed to rotate key");
-        }
-      } catch (err) {
-        alert("Error rotating key: " + err.message);
-      }
-    }
-
     async function action(endpoint, name, successMsg) {
-      try {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name })
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(successMsg);
-          listProfiles();
-        } else {
-          alert("Action failed");
-        }
-      } catch (err) {
-        alert("Error: " + err.message);
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(successMsg);
+        listProfiles();
+      } else {
+        alert("Action failed");
       }
     }
 
     async function listProfiles() {
-      try {
-        const res = await fetch(`${API_BASE}/profiles`);
-        const data = await res.json();
-        const container = document.getElementById("profiles");
-        container.innerHTML = "";
-        if (data.success && data.profiles.length > 0) {
-          // Sort alphabetically before rendering
-          data.profiles
-            .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
-            .forEach(p => renderProfile(p));
-        } else {
-          container.innerHTML = "<p>No profiles found</p>";
-        }
-      } catch (err) {
-        alert("Error fetching profiles: " + err.message);
+      const res = await fetch(`${API_BASE}/profiles`);
+      const data = await res.json();
+      const container = document.getElementById("profiles");
+      container.innerHTML = "";
+      if (data.success && data.profiles.length > 0) {
+        data.profiles
+          .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+          .forEach(p => renderProfile(p));
+      } else {
+        container.innerHTML = "<p>No profiles found</p>";
       }
     }
 
     async function searchProfile() {
       const name = document.getElementById("searchName").value;
       if (!name) return alert("Enter a profile name to search");
-      try {
-        const res = await fetch(`${API_BASE}/profile/${name}`);
-        const data = await res.json();
-        const resultDiv = document.getElementById("searchResult");
-        if (data.success) {
-          resultDiv.innerHTML = `
-            <h4>${data.profile.name} (${data.profile.status})</h4>
-            <p>API Key: ${data.profile.apiKey}</p>
-          `;
-        } else {
-          resultDiv.innerHTML = "<p>Profile not found</p>";
-        }
-      } catch (err) {
-        alert("Error searching profile: " + err.message);
+      const res = await fetch(`${API_BASE}/profile/${name}`);
+      const data = await res.json();
+      const resultDiv = document.getElementById("searchResult");
+      if (data.success) {
+        resultDiv.innerHTML = `
+          <h4>${data.profile.name} (${data.profile.status})</h4>
+        `;
+      } else {
+        resultDiv.innerHTML = "<p>Profile not found</p>";
       }
     }
 
@@ -144,10 +100,8 @@
       card.className = "profile-card";
       card.innerHTML = `
         <h4>${profile.name} (${profile.status})</h4>
-        <p>API Key: ${profile.apiKey || "Not set"}</p>
         <button class="btn-revoke" onclick="revokeProfile('${profile.name}')">Revoke</button>
         <button class="btn-restore" onclick="restoreProfile('${profile.name}')">Restore</button>
-        <button class="btn-rotate" onclick="rotateKey('${profile.name}')">Rotate Key</button>
         <button class="btn-delete" onclick="deleteProfile('${profile.name}')">Delete</button>
       `;
       container.appendChild(card);
@@ -158,5 +112,3 @@
   </script>
 </body>
 </html>
-
-
