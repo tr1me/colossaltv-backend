@@ -1,15 +1,45 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(bodyParser.json());
 
-// Store profiles in memory
-let profiles = [];
+// Path to persistent storage file inside Fly.io volume
+const DATA_FILE = path.join("/data", "profiles.json");
 
-// Store your single Premiumize API key securely (use environment variable in production)
-const PREMIUMIZE_KEY = process.env.PREMIUMIZE_KEY || "YOUR_PREMIUMIZE_API_KEY";
+// Load profiles from disk if file exists
+let profiles = [];
+if (fs.existsSync(DATA_FILE)) {
+  try {
+    profiles = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+  } catch (err) {
+    console.error("Failed to load profiles:", err);
+    profiles = [];
+  }
+}
+
+// Helper: save profiles to disk
+function saveProfiles() {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(profiles, null, 2));
+  } catch (err) {
+    console.error("Failed to save profiles:", err);
+  }
+}
+
+// Premiumize API key (must be set as Fly secret)
+const PREMIUMIZE_KEY = process.env.PREMIUMIZE_KEY;
+if (!PREMIUMIZE_KEY) {
+  console.warn("⚠️ PREMIUMIZE_KEY not set. Run: fly secrets set PREMIUMIZE_KEY=your_api_key");
+}
+
+// Root route for Fly.io smoke checks
+app.get("/", (req, res) => {
+  res.json({ success: true, message: "COLOSSALTV backend is running" });
+});
 
 // Add a profile
 app.post("/profile", (req, res) => {
@@ -18,6 +48,7 @@ app.post("/profile", (req, res) => {
 
   const newProfile = { name, status: "active" };
   profiles.push(newProfile);
+  saveProfiles();
   res.json({ success: true, profile: newProfile });
 });
 
@@ -27,6 +58,7 @@ app.post("/revoke", (req, res) => {
   const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
   profile.status = "revoked";
+  saveProfiles();
   res.json({ success: true, profile });
 });
 
@@ -36,6 +68,7 @@ app.post("/restore", (req, res) => {
   const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
   profile.status = "active";
+  saveProfiles();
   res.json({ success: true, profile });
 });
 
@@ -43,6 +76,7 @@ app.post("/restore", (req, res) => {
 app.post("/delete", (req, res) => {
   const { name } = req.body;
   profiles = profiles.filter(p => p.name.toLowerCase() !== name.toLowerCase());
+  saveProfiles();
   res.json({ success: true });
 });
 
@@ -69,9 +103,11 @@ app.get("/premiumize/:name/account", async (req, res) => {
     const data = await response.json();
     res.json({ success: true, premiumize: data });
   } catch (err) {
+    console.error("Premiumize request failed:", err);
     res.status(500).json({ success: false, message: "Premiumize request failed" });
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
