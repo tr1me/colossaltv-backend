@@ -1,15 +1,8 @@
 app = "colossaltv-backend"
 primary_region = "ord"
 
-[build]
-  builder = "heroku/builder:24"
-
 [env]
   PORT = "3000"
-
-[mounts]
-  source = "vol_vz5gqef272knjx0jev"   # replace with actual volume name
-  destination = "/data"
 
 [[services]]
   internal_port = 3000
