@@ -1,96 +1,77 @@
 const express = require("express");
-const cors = require("cors");
+const bodyParser = require("body-parser");
+const fetch = require("node-fetch");
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(bodyParser.json());
 
-app.use(cors());
-app.use(express.json());
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✨ COLOSSALTV backend running on port ${PORT}`);
-});
-
-// In-memory profiles
+// Store profiles in memory
 let profiles = [];
 
-// Add Profile
+// Store your single Premiumize API key securely (use environment variable in production)
+const PREMIUMIZE_KEY = process.env.PREMIUMIZE_KEY || "YOUR_PREMIUMIZE_API_KEY";
+
+// Add a profile
 app.post("/profile", (req, res) => {
   const { name } = req.body;
-  if (!name) {
-    return res.status(400).json({ success: false, message: "Name is required" });
-  }
+  if (!name) return res.status(400).json({ success: false, message: "Name required" });
 
-  const newKey = Math.random().toString(36).substring(2, 12);
-  const newProfile = { name, status: "active", apiKey: newKey };
+  const newProfile = { name, status: "active" };
   profiles.push(newProfile);
-
   res.json({ success: true, profile: newProfile });
 });
 
-// Revoke Access
+// Revoke profile
 app.post("/revoke", (req, res) => {
   const { name } = req.body;
   const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (profile) {
-    profile.status = "revoked";
-    res.json({ success: true, profile });
-  } else {
-    res.status(404).json({ success: false, message: "Profile not found" });
-  }
+  if (!profile) return res.json({ success: false, message: "Profile not found" });
+  profile.status = "revoked";
+  res.json({ success: true, profile });
 });
 
-// Restore Access
+// Restore profile
 app.post("/restore", (req, res) => {
   const { name } = req.body;
   const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (profile) {
-    profile.status = "active";
-    res.json({ success: true, profile });
-  } else {
-    res.status(404).json({ success: false, message: "Profile not found" });
-  }
+  if (!profile) return res.json({ success: false, message: "Profile not found" });
+  profile.status = "active";
+  res.json({ success: true, profile });
 });
 
-// Rotate API Key
-app.post("/rotate-key", (req, res) => {
-  const { name } = req.body;
-  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (profile) {
-    const newKey = Math.random().toString(36).substring(2, 12);
-    profile.apiKey = newKey;
-    res.json({ success: true, profile });
-  } else {
-    res.status(404).json({ success: false, message: "Profile not found" });
-  }
-});
-
-// Delete Profile
+// Delete profile
 app.post("/delete", (req, res) => {
   const { name } = req.body;
-  const index = profiles.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
-  if (index !== -1) {
-    const removed = profiles.splice(index, 1)[0];
-    res.json({ success: true, profile: removed });
-  } else {
-    res.status(404).json({ success: false, message: "Profile not found" });
-  }
+  profiles = profiles.filter(p => p.name.toLowerCase() !== name.toLowerCase());
+  res.json({ success: true });
 });
 
-// Search Profile
-app.get("/profile/:name", (req, res) => {
-  const name = req.params.name;
-  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (profile) {
-    res.json({ success: true, profile });
-  } else {
-    res.status(404).json({ success: false, message: "Profile not found" });
-  }
-});
-
-// List All Profiles (alphabetical)
+// List profiles
 app.get("/profiles", (req, res) => {
-  const sorted = [...profiles].sort((a, b) =>
-    a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-  );
-  res.json({ success: true, profiles: sorted });
+  res.json({ success: true, profiles });
 });
+
+// Search profile
+app.get("/profile/:name", (req, res) => {
+  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
+  if (!profile) return res.json({ success: false, message: "Profile not found" });
+  res.json({ success: true, profile });
+});
+
+// Premiumize account info (only if profile is active)
+app.get("/premiumize/:name/account", async (req, res) => {
+  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
+  if (!profile) return res.status(404).json({ success: false, message: "Profile not found" });
+  if (profile.status !== "active") return res.status(403).json({ success: false, message: "Access revoked" });
+
+  try {
+    const response = await fetch(`https://www.premiumize.me/api/account/info?apikey=${PREMIUMIZE_KEY}`);
+    const data = await response.json();
+    res.json({ success: true, premiumize: data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Premiumize request failed" });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
