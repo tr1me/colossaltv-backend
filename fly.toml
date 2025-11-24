@@ -4,6 +4,10 @@ primary_region = "ord"
 [env]
   PORT = "3000"
 
+[mounts]
+  source = "vol_vz5gqef272knjx0jev"   # must match the actual volume name in Fly.io
+  destination = "/data"
+
 [[services]]
   internal_port = 3000
   protocol = "tcp"
