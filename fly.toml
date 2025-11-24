@@ -5,7 +5,7 @@ primary_region = "ord"
   PORT = "3000"
 
 [mounts]
-  source = "vol_45lem1l325jg988r"   # must match the actual volume name in Fly.io
+  source = "vol_45lem1l325jg988r"   # matches the actual attached volume
   destination = "/data"
 
 [[services]]
