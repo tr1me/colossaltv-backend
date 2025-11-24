@@ -5,7 +5,7 @@ primary_region = "ord"
   PORT = "3000"
 
 [mounts]
-  source = "vol_45lem1l325jg988r"   # matches the actual attached volume
+  source = "vol_vwjdxewmxl9979nr"   # matches the actual attached volume
   destination = "/data"
 
 [[services]]
