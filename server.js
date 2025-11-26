@@ -4,9 +4,11 @@ const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors");
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors()); // Enable CORS for frontend integration
 
 // Path to persistent storage file inside Fly.io volume
 const DATA_FILE = path.join("/data", "profiles.json");
@@ -37,7 +39,7 @@ if (!PREMIUMIZE_KEY) {
   console.warn("⚠️ PREMIUMIZE_KEY not set. Run: fly secrets set PREMIUMIZE_KEY=your_api_key");
 }
 
-// Root route for Fly.io smoke checks
+// Root route — JSON heartbeat
 app.get("/", (req, res) => {
   res.json({ success: true, message: "COLOSSALTV backend is running" });
 });
@@ -51,6 +53,18 @@ app.post("/profiles", (req, res) => {
   profiles.push(newProfile);
   saveProfiles();
   res.json({ success: true, profile: newProfile });
+});
+
+// List profiles
+app.get("/profiles", (req, res) => {
+  res.json({ success: true, profiles });
+});
+
+// Search profile
+app.get("/profiles/:name", (req, res) => {
+  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
+  if (!profile) return res.json({ success: false, message: "Profile not found" });
+  res.json({ success: true, profile });
 });
 
 // Revoke profile
@@ -75,19 +89,7 @@ app.post("/profiles/:name/restore", (req, res) => {
 app.delete("/profiles/:name", (req, res) => {
   profiles = profiles.filter(p => p.name.toLowerCase() !== req.params.name.toLowerCase());
   saveProfiles();
-  res.json({ success: true });
-});
-
-// List profiles
-app.get("/profiles", (req, res) => {
-  res.json({ success: true, profiles });
-});
-
-// Search profile
-app.get("/profiles/:name", (req, res) => {
-  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
-  if (!profile) return res.json({ success: false, message: "Profile not found" });
-  res.json({ success: true, profile });
+  res.json({ success: true, message: `Profile ${req.params.name} deleted` });
 });
 
 // Premiumize account info (only if profile is active)
@@ -108,8 +110,8 @@ app.get("/premiumize/:name/account", async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-const HOST = "0.0.0.0";   // required for Fly.io
+const HOST = "0.0.0.0"; // required for Fly.io
 
 app.listen(PORT, HOST, () => {
-  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`✨ COLOSSALTV backend running on http://${HOST}:${PORT}`);
 });
