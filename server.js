@@ -41,8 +41,8 @@ app.get("/", (req, res) => {
   res.json({ success: true, message: "COLOSSALTV backend is running" });
 });
 
-// Add a profile
-app.post("/profile", (req, res) => {
+// Add a profile (pluralized route)
+app.post("/profiles", (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ success: false, message: "Name required" });
 
@@ -53,9 +53,8 @@ app.post("/profile", (req, res) => {
 });
 
 // Revoke profile
-app.post("/revoke", (req, res) => {
-  const { name } = req.body;
-  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
+app.post("/profiles/:name/revoke", (req, res) => {
+  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
   profile.status = "revoked";
   saveProfiles();
@@ -63,9 +62,8 @@ app.post("/revoke", (req, res) => {
 });
 
 // Restore profile
-app.post("/restore", (req, res) => {
-  const { name } = req.body;
-  const profile = profiles.find(p => p.name.toLowerCase() === name.toLowerCase());
+app.post("/profiles/:name/restore", (req, res) => {
+  const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
   profile.status = "active";
   saveProfiles();
@@ -73,9 +71,8 @@ app.post("/restore", (req, res) => {
 });
 
 // Delete profile
-app.post("/delete", (req, res) => {
-  const { name } = req.body;
-  profiles = profiles.filter(p => p.name.toLowerCase() !== name.toLowerCase());
+app.delete("/profiles/:name", (req, res) => {
+  profiles = profiles.filter(p => p.name.toLowerCase() !== req.params.name.toLowerCase());
   saveProfiles();
   res.json({ success: true });
 });
@@ -85,8 +82,8 @@ app.get("/profiles", (req, res) => {
   res.json({ success: true, profiles });
 });
 
-// Search profile
-app.get("/profile/:name", (req, res) => {
+// Search profile (pluralized route)
+app.get("/profiles/:name", (req, res) => {
   const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
   res.json({ success: true, profile });
@@ -115,4 +112,3 @@ const HOST = "0.0.0.0";   // required for Fly.io
 app.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
 });
-
