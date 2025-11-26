@@ -39,7 +39,7 @@
     async function addProfile() {
       const name = prompt("Enter a profile name:");
       if (!name) return alert("Profile name is required!");
-      const res = await fetch(`${API_BASE}/profiles`, {   // ✅ corrected route
+      const res = await fetch(`${API_BASE}/profiles`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name })
       });
@@ -72,7 +72,7 @@
     }
 
     async function listProfiles() {
-      const res = await fetch(`${API_BASE}/profiles`);   // ✅ corrected route
+      const res = await fetch(`${API_BASE}/profiles`);
       const data = await res.json();
       const container = document.getElementById("profiles");
       container.innerHTML = "";
@@ -86,17 +86,20 @@
     }
 
     async function searchProfile() {
-      const name = document.getElementById("searchName").value;
+      const name = document.getElementById("searchName").value.trim();
       if (!name) return alert("Enter a profile name to search");
-      const res = await fetch(`${API_BASE}/profiles/${name}`);   // ✅ corrected route
-      const data = await res.json();
-      const resultDiv = document.getElementById("searchResult");
-      if (data.success) {
-        resultDiv.innerHTML = `
-          <h4>${data.profile.name} (${data.profile.status})</h4>
-        `;
-      } else {
-        resultDiv.innerHTML = "<p>Profile not found</p>";
+      try {
+        const res = await fetch(`${API_BASE}/profiles/${encodeURIComponent(name)}`);
+        const data = await res.json();
+        const resultDiv = document.getElementById("searchResult");
+        if (data.success) {
+          resultDiv.innerHTML = `<h4>${data.profile.name} (${data.profile.status})</h4>`;
+        } else {
+          resultDiv.innerHTML = "<p>Profile not found</p>";
+        }
+      } catch (err) {
+        console.error("Search failed:", err);
+        document.getElementById("searchResult").innerHTML = "<p>Error searching profile</p>";
       }
     }
 
