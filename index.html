@@ -4,112 +4,120 @@
   <meta charset="UTF-8">
   <title>COLOSSALTV Dashboard</title>
   <style>
-    body { background: #0f0f0f; color: #fff; font-family: Segoe UI, sans-serif; }
-    .profile-card { background: #1f1f1f; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    button { margin: 0.25rem; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
-    .btn-add { background: #0f0; color: #000; }
-    .btn-revoke { background: #f00; color: #fff; }
-    .btn-restore { background: #0ff; color: #000; }
-    .btn-delete { background: #555; color: #fff; }
-    .btn-refresh { background: #888; color: #fff; }
-    .btn-search { background: #06f; color: #fff; }
-    input { padding: 0.5rem; margin: 0.25rem; border-radius: 4px; border: 1px solid #333; }
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; }
+    h1 { color: #0ff; }
+    button { margin: 5px; padding: 8px 12px; border: none; cursor: pointer; }
+    button:hover { background: #0ff; color: #111; }
+    input { margin: 5px; padding: 6px; }
+    #profilesList { margin-top: 15px; }
+    .log { background: #222; padding: 10px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h2>
-    <img src="ColossallogoMAIN.png" alt="COLOSSALTV Logo" style="height:40px; vertical-align:middle;">
-    Dashboard
-  </h2>
-  <button class="btn-add" onclick="addProfile()">Add Profile</button>
-  <button class="btn-refresh" onclick="listProfiles()">Refresh Profiles</button>
+  <h1>✨ COLOSSALTV Dashboard</h1>
 
-  <!-- Search Profile -->
-  <div>
-    <input id="searchName" placeholder="Enter profile name">
-    <button class="btn-search" onclick="searchProfile()">Search Profile</button>
-  </div>
-  <div id="searchResult"></div>
+  <!-- Profile Controls -->
+  <input id="profileNameInput" type="text" placeholder="Enter profile name" />
+  <button id="addProfileBtn">Add Profile</button>
+  <button id="deleteProfileBtn">Delete Profile</button>
+  <button id="revokeAccessBtn">Revoke Access</button>
+  <button id="restoreAccessBtn">Restore Access</button>
+  <button id="rotateApiKeyBtn">Rotate API Key</button>
+  <button id="refreshProfilesBtn">Refresh Profiles</button>
+  <input id="searchProfileInput" type="text" placeholder="Search profiles..." />
+  <button id="searchProfileBtn">Search Profile</button>
 
-  <div id="profiles"></div>
+  <!-- Other Controls -->
+  <button id="activityLogsBtn">View Activity Logs</button>
+  <button id="apiSettingsBtn">API Settings</button>
+  <button id="deviceMapBtn">Device Map</button>
+
+  <!-- Output -->
+  <ul id="profilesList"></ul>
+  <div id="output" class="log"></div>
 
   <script>
-    const API_BASE = "http://localhost:3000"; // adjust if deployed
+    const output = document.getElementById('output');
 
-    async function addProfile() {
-      const name = prompt("Enter a profile name:");
-      if (!name) return alert("Profile name is required!");
-      const res = await fetch(`${API_BASE}/profile`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+    async function loadProfiles() {
+      const res = await fetch('/profiles');
+      const profiles = await res.json();
+      const list = document.getElementById('profilesList');
+      list.innerHTML = '';
+      profiles.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p.name;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById('addProfileBtn').addEventListener('click', async () => {
+      const name = document.getElementById('profileNameInput').value;
+      if (!name) return alert('Enter a profile name');
+      const res = await fetch('/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name })
       });
+      output.textContent = res.ok ? 'Profile added!' : 'Failed to add profile';
+      loadProfiles();
+    });
+
+    document.getElementById('deleteProfileBtn').addEventListener('click', async () => {
+      const name = document.getElementById('profileNameInput').value;
+      if (!name) return alert('Enter profile name to delete');
+      const res = await fetch(`/profiles/${name}`, { method: 'DELETE' });
+      output.textContent = res.ok ? 'Profile deleted!' : 'Failed to delete profile';
+      loadProfiles();
+    });
+
+    document.getElementById('revokeAccessBtn').addEventListener('click', async () => {
+      const name = document.getElementById('profileNameInput').value;
+      const res = await fetch(`/profiles/${name}/revoke`, { method: 'POST' });
+      output.textContent = res.ok ? 'Access revoked!' : 'Failed to revoke access';
+    });
+
+    document.getElementById('restoreAccessBtn').addEventListener('click', async () => {
+      const name = document.getElementById('profileNameInput').value;
+      const res = await fetch(`/profiles/${name}/restore`, { method: 'POST' });
+      output.textContent = res.ok ? 'Access restored!' : 'Failed to restore access';
+    });
+
+    document.getElementById('rotateApiKeyBtn').addEventListener('click', async () => {
+      const res = await fetch('/apikey/rotate', { method: 'POST' });
       const data = await res.json();
-      if (data.success) listProfiles();
-    }
+      output.textContent = res.ok ? `New API Key: ${data.key}` : 'Failed to rotate API key';
+    });
 
-    async function revokeProfile(name) { await action("/revoke", name, `Profile "${name}" revoked`); }
-    async function restoreProfile(name) { await action("/restore", name, `Profile "${name}" restored`); }
-    async function deleteProfile(name) { await action("/delete", name, `Profile "${name}" deleted`); }
+    document.getElementById('refreshProfilesBtn').addEventListener('click', loadProfiles);
 
-    async function action(endpoint, name, successMsg) {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name })
-      });
+    document.getElementById('searchProfileBtn').addEventListener('click', async () => {
+      const query = document.getElementById('searchProfileInput').value;
+      const res = await fetch(`/profiles/search?name=${encodeURIComponent(query)}`);
       const data = await res.json();
-      if (data.success) {
-        alert(successMsg);
-        listProfiles();
-      } else {
-        alert("Action failed");
-      }
-    }
+      output.textContent = JSON.stringify(data, null, 2);
+    });
 
-    async function listProfiles() {
-      const res = await fetch(`${API_BASE}/profiles`);
+    document.getElementById('activityLogsBtn').addEventListener('click', async () => {
+      const res = await fetch('/logs');
       const data = await res.json();
-      const container = document.getElementById("profiles");
-      container.innerHTML = "";
-      if (data.success && data.profiles.length > 0) {
-        data.profiles
-          .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
-          .forEach(p => renderProfile(p));
-      } else {
-        container.innerHTML = "<p>No profiles found</p>";
-      }
-    }
+      output.textContent = JSON.stringify(data, null, 2);
+    });
 
-    async function searchProfile() {
-      const name = document.getElementById("searchName").value;
-      if (!name) return alert("Enter a profile name to search");
-      const res = await fetch(`${API_BASE}/profile/${name}`);
+    document.getElementById('apiSettingsBtn').addEventListener('click', async () => {
+      const res = await fetch('/api/settings');
       const data = await res.json();
-      const resultDiv = document.getElementById("searchResult");
-      if (data.success) {
-        resultDiv.innerHTML = `
-          <h4>${data.profile.name} (${data.profile.status})</h4>
-        `;
-      } else {
-        resultDiv.innerHTML = "<p>Profile not found</p>";
-      }
-    }
+      output.textContent = JSON.stringify(data, null, 2);
+    });
 
-    function renderProfile(profile) {
-      const container = document.getElementById("profiles");
-      const card = document.createElement("div");
-      card.className = "profile-card";
-      card.innerHTML = `
-        <h4>${profile.name} (${profile.status})</h4>
-        <button class="btn-revoke" onclick="revokeProfile('${profile.name}')">Revoke</button>
-        <button class="btn-restore" onclick="restoreProfile('${profile.name}')">Restore</button>
-        <button class="btn-delete" onclick="deleteProfile('${profile.name}')">Delete</button>
-      `;
-      container.appendChild(card);
-    }
+    document.getElementById('deviceMapBtn').addEventListener('click', async () => {
+      const res = await fetch('/devices');
+      const data = await res.json();
+      output.textContent = JSON.stringify(data, null, 2);
+    });
 
-    // Load profiles on page start
-    listProfiles();
+    // Load profiles on page load
+    loadProfiles();
   </script>
 </body>
 </html>
-
