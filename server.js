@@ -1,3 +1,4 @@
+console.log(">>> Running pluralized server.js <<<");
 const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
