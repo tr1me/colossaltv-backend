@@ -41,7 +41,7 @@ app.get("/", (req, res) => {
   res.json({ success: true, message: "COLOSSALTV backend is running" });
 });
 
-// Add a profile (pluralized route)
+// Add a profile
 app.post("/profiles", (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ success: false, message: "Name required" });
@@ -82,7 +82,7 @@ app.get("/profiles", (req, res) => {
   res.json({ success: true, profiles });
 });
 
-// Search profile (pluralized route)
+// Search profile
 app.get("/profiles/:name", (req, res) => {
   const profile = profiles.find(p => p.name.toLowerCase() === req.params.name.toLowerCase());
   if (!profile) return res.json({ success: false, message: "Profile not found" });
